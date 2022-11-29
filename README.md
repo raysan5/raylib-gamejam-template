@@ -8,6 +8,8 @@ This template provides a base structure to start developing a small raylib game 
 
  - Game must be 256x256 pixels screen size
  - Game must be compiled for web
+ 
+NOTE: Several GitHub Actions workflows have been preconfigured to automatically build your game for Windows, Linux and WebAssembly on each commit. Those workflows automatically sync with latest version of raylib available to build.
 
 The repo is also pre-configured with a default `LICENSE` (zlib/libpng) and a `README.md` (this one) to be properly filled by users. Feel free to change the LICENSE as required.
 
