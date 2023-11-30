@@ -2,12 +2,15 @@
 
 _DISCLAIMER:_
 
-Welcome to **raylib 9 years gamejam template**!
+Welcome to the **raylib gamejam template**!
 
-This template provides a base structure to start developing a small raylib game in plain C for the raylib 9 years gamejam, considering the requested restrictions: 
+This template provides a base structure to start developing a small raylib game in plain C for any of the proposed **raylib gamejams**!
 
- - Game must be 256x256 pixels screen size
+Please, considering the following usual gamejam restrictions: 
+
+ - Game must be made with raylib
  - Game must be compiled for web
+ - _Specific gamejam restrictions if defined_
  
 NOTE: Several GitHub Actions workflows have been preconfigured to automatically build your game for Windows, Linux and WebAssembly on each commit. Those workflows automatically sync with latest version of raylib available to build.
 
