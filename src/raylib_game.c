@@ -1,13 +1,13 @@
 /*******************************************************************************************
 *
-*   raylib 9years gamejam template
+*   raylib gamejam template
 *
-*   Template originally created with raylib 4.5-dev, last time updated with raylib 4.5-dev
+*   Template originally created with raylib 4.5-dev, last time updated with raylib 5.0
 *
 *   Template licensed under an unmodified zlib/libpng license, which is an OSI-certified,
 *   BSD-like license that allows static linking with closed source software
 *
-*   Copyright (c) 2022 Ramon Santamaria (@raysan5)
+*   Copyright (c) 2022-2023 Ramon Santamaria (@raysan5)
 *
 ********************************************************************************************/
 
@@ -49,13 +49,10 @@ typedef enum {
 //----------------------------------------------------------------------------------
 // Global Variables Definition
 //----------------------------------------------------------------------------------
-static const int screenWidth = 256;
-static const int screenHeight = 256;
+static const int screenWidth = 1280;
+static const int screenHeight = 720;
 
-static unsigned int screenScale = 1; 
-static unsigned int prevScreenScale = 1;
-
-static RenderTexture2D target = { 0 };  // Initialized at init
+static RenderTexture2D target = { 0 };  // Render texture to render our game
 
 // TODO: Define global variables here, recommended to make them static
 
@@ -75,7 +72,7 @@ int main(void)
 
     // Initialization
     //--------------------------------------------------------------------------------------
-    InitWindow(screenWidth, screenHeight, "raylib 9yr gamejam");
+    InitWindow(screenWidth, screenHeight, "raylib gamejam template");
     
     // TODO: Load resources / Initialize variables at this point
     
@@ -117,46 +114,29 @@ void UpdateDrawFrame(void)
 {
     // Update
     //----------------------------------------------------------------------------------
-    // Screen scale logic (x2)
-    if (IsKeyPressed(KEY_ONE)) screenScale = 1;
-    else if (IsKeyPressed(KEY_TWO)) screenScale = 2;
-    else if (IsKeyPressed(KEY_THREE)) screenScale = 3;
-    
-    if (screenScale != prevScreenScale)
-    {
-        // Scale window to fit the scaled render texture
-        SetWindowSize(screenWidth*screenScale, screenHeight*screenScale);
-        
-        // Scale mouse proportionally to keep input logic inside the 256x256 screen limits
-        SetMouseScale(1.0f/(float)screenScale, 1.0f/(float)screenScale);
-        
-        prevScreenScale = screenScale;
-    }
-
     // TODO: Update variables / Implement example logic at this point
     //----------------------------------------------------------------------------------
 
     // Draw
     //----------------------------------------------------------------------------------
-    // Render all screen to texture (for scaling)
+    // Render game screen to a texture, 
+    // it could be useful for scaling or further sahder postprocessing
     BeginTextureMode(target);
         ClearBackground(RAYWHITE);
         
-        // TODO: Draw screen at 256x256
+        // TODO: Draw your game screen here
         DrawRectangle(10, 10, screenWidth - 20, screenHeight - 20, SKYBLUE);
         
     EndTextureMode();
     
+    // Render to screen (main framebuffer)
     BeginDrawing();
         ClearBackground(RAYWHITE);
         
-        // Draw render texture to screen scaled as required
-        DrawTexturePro(target.texture, (Rectangle){ 0, 0, (float)target.texture.width, -(float)target.texture.height }, (Rectangle){ 0, 0, (float)target.texture.width*screenScale, (float)target.texture.height*screenScale }, (Vector2){ 0, 0 }, 0.0f, WHITE);
+        // Draw render texture to screen, scaled if required
+        DrawTexturePro(target.texture, (Rectangle){ 0, 0, (float)target.texture.width, -(float)target.texture.height }, (Rectangle){ 0, 0, (float)target.texture.width, (float)target.texture.height }, (Vector2){ 0, 0 }, 0.0f, WHITE);
 
-        // Draw equivalent mouse position on the target render-texture
-        DrawCircleLines(GetMouseX(), GetMouseY(), 10, MAROON);
-
-        // TODO: Draw everything that requires to be drawn at this point:
+        // TODO: Draw everything that requires to be drawn at this point, maybe UI?
 
     EndDrawing();
     //----------------------------------------------------------------------------------  
