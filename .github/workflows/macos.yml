@@ -20,6 +20,7 @@ jobs:
     
     env:
       PROJECT_NAME: ${{ github.event.repository.name }}
+      PROJECT_FILE_NAME: raylib_game
       PROJECT_BUILD_PATH: ${{ github.event.repository.name }}/src
       PROJECT_RELEASE_PATH: ${{ github.event.repository.name }}_dev_macos
       PROJECT_SOURCES: "raylib_game.c"
@@ -48,8 +49,8 @@ jobs:
       run: | 
         mkdir ${{ env.PROJECT_RELEASE_PATH }}
         cd ${{ env.PROJECT_RELEASE_PATH }}
-        mkdir ${{ env.PROJECT_NAME }}.app
-        cd ${{ env.PROJECT_NAME }}.app
+        mkdir ${{ env.PROJECT_FILE_NAME }}.app
+        cd ${{ env.PROJECT_FILE_NAME }}.app
         mkdir Contents
         cd Contents
         mkdir MacOS
@@ -92,26 +93,26 @@ jobs:
         # Build project x86_64 binary
         # TODO: Link with x86_64 raylib library: libraylib_x86_64.a
         make PLATFORM=PLATFORM_DESKTOP BUILD_MODE=RELEASE PROJECT_SOURCE_FILES=${{ env.PROJECT_SOURCES }} PROJECT_CUSTOM_FLAGS=${{ env.PROJECT_CUSTOM_FLAGS }} PROJECT_BUILD_PATH=. RAYLIB_PATH=../../raylib PROJECT_CUSTOM_FLAGS="-target x86_64-apple-macos10.12"
-        mv -v -f ${{ env.PROJECT_NAME }} ${{ env.PROJECT_NAME }}_x86_64
+        mv -v -f ${{ env.PROJECT_FILE_NAME }} ${{ env.PROJECT_FILE_NAME }}_x86_64
         make clean
         
         # Build project arm64 binary
         # TODO: Link with arm64 raylib library: libraylib_arm.a
         make PLATFORM=PLATFORM_DESKTOP BUILD_MODE=RELEASE PROJECT_SOURCE_FILES=${{ env.PROJECT_SOURCES }} PROJECT_CUSTOM_FLAGS=${{ env.PROJECT_CUSTOM_FLAGS }} PROJECT_BUILD_PATH=. RAYLIB_PATH=../../raylib PROJECT_CUSTOM_FLAGS="-target arm64-apple-macos11"
-        mv -v -f ${{ env.PROJECT_NAME }} ${{ env.PROJECT_NAME }}_arm64
+        mv -v -f ${{ env.PROJECT_FILE_NAME }} ${{ env.PROJECT_FILE_NAME }}_arm64
         make clean
         
         # Join x86_64 and arm64 binaries
-        lipo -create -output ${{ env.PROJECT_NAME }} ${{ env.PROJECT_NAME }}_x86_64 ${{ env.PROJECT_NAME }}_arm64
-        lipo ${{ env.PROJECT_NAME }} -detailed_info
+        lipo -create -output ${{ env.PROJECT_FILE_NAME }} ${{ env.PROJECT_FILE_NAME }}_x86_64 ${{ env.PROJECT_FILE_NAME }}_arm64
+        lipo ${{ env.PROJECT_FILE_NAME }} -detailed_info
         cd ..
 
     - name: Generate Artifacts
       run: |
         ls ${{ env.PROJECT_BUILD_PATH }}
-        cp ${{ env.PROJECT_BUILD_PATH }}/${{ env.PROJECT_NAME }} ${{ env.PROJECT_RELEASE_PATH }}/${{ env.PROJECT_NAME }}.app/Contents/MacOS
-        cp ${{ env.PROJECT_NAME }}/src/raylib.icns ${{ env.PROJECT_RELEASE_PATH }}/${{ env.PROJECT_NAME }}.app/Contents/Resources
-        cp ${{ env.PROJECT_NAME }}/src/Info.plist ${{ env.PROJECT_RELEASE_PATH }}/${{ env.PROJECT_NAME }}.app/Contents
+        cp ${{ env.PROJECT_BUILD_PATH }}/${{ env.PROJECT_FILE_NAME }} ${{ env.PROJECT_RELEASE_PATH }}/${{ env.PROJECT_FILE_NAME }}.app/Contents/MacOS
+        cp ${{ env.PROJECT_NAME }}/src/raylib.icns ${{ env.PROJECT_RELEASE_PATH }}/${{ env.PROJECT_FILE_NAME }}.app/Contents/Resources
+        cp ${{ env.PROJECT_NAME }}/src/Info.plist ${{ env.PROJECT_RELEASE_PATH }}/${{ env.PROJECT_FILE_NAME }}.app/Contents
         cp ${{ env.PROJECT_NAME }}/README.md ${{ env.PROJECT_RELEASE_PATH }}
         cp ${{ env.PROJECT_NAME }}/LICENSE ${{ env.PROJECT_RELEASE_PATH }}
         ls ${{ env.PROJECT_RELEASE_PATH }}
