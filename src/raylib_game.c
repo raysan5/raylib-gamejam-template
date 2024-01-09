@@ -67,7 +67,7 @@ static void UpdateDrawFrame(void);      // Update and Draw one frame
 int main(void)
 {
 #if !defined(_DEBUG)
-    SetTraceLogLevel(LOG_NONE);         // Disable raylib trace log messsages
+    SetTraceLogLevel(LOG_NONE);         // Disable raylib trace log messages
 #endif
 
     // Initialization
@@ -120,7 +120,7 @@ void UpdateDrawFrame(void)
     // Draw
     //----------------------------------------------------------------------------------
     // Render game screen to a texture, 
-    // it could be useful for scaling or further sahder postprocessing
+    // it could be useful for scaling or further shader postprocessing
     BeginTextureMode(target);
         ClearBackground(RAYWHITE);
         
