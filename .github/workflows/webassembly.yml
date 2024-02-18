@@ -27,13 +27,13 @@ jobs:
         path: ${{ env.PROJECT_NAME }}
       
     - name: Checkout raylib repo
-      uses: actions/checkout@v3
+      uses: actions/checkout@v4
       with:
         repository: raysan5/raylib
         path: raylib
   
     - name: Setup emsdk
-      uses: mymindstorm/setup-emsdk@v12
+      uses: mymindstorm/setup-emsdk@v14
       with:
         version: 3.1.30
         actions-cache-folder: 'emsdk-cache'
