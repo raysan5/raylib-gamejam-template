@@ -47,6 +47,30 @@ BUILD_WEB_HEAP_SIZE   ?= 128MB
 BUILD_WEB_RESOURCES   ?= TRUE
 BUILD_WEB_RESOURCES_PATH  ?= resources
 
+# Determine the HOST_OS
+# No uname.exe on MinGW!, but OS=Windows_NT on Windows!
+# ifeq ($(UNAME),Msys) -> Windows
+ifeq ($(OS),Windows_NT)
+	HOST_OS := WINDOWS
+else
+	HOST_OS := $(shell uname)
+	ifeq ($(HOST_OS),Linux)
+		HOST_OS = LINUX
+	else ifeq ($(HOST_OS),FreeBSD)
+		HOST_OS = BSD
+	else ifeq ($(HOST_OS),OpenBSD)
+		HOST_OS = BSD
+	else ifeq ($(HOST_OS),NetBSD)
+		HOST_OS = BSD
+	else ifeq ($(HOST_OS),DragonFly)
+		HOST_OS = BSD
+	else ifeq ($(HOST_OS),Darwin)
+		HOST_OS = OSX
+	else
+		HOST_OS = UNKNOWN
+	endif
+endif
+
 # Determine PLATFORM_OS in case PLATFORM_DESKTOP selected
 ifeq ($(PLATFORM),PLATFORM_DESKTOP)
     # No uname.exe on MinGW!, but OS=Windows_NT on Windows!
@@ -322,23 +346,64 @@ $(PROJECT_NAME): $(OBJS)
 # Clean everything
 clean:
 ifeq ($(PLATFORM),PLATFORM_DESKTOP)
-    ifeq ($(PLATFORM_OS),WINDOWS)
-		del *.o *.exe /s
-    endif
-    ifeq ($(PLATFORM_OS),LINUX)
-		find . -type f -executable -delete
-		rm -fv *.o
-    endif
-    ifeq ($(PLATFORM_OS),OSX)
-		rm -f *.o external/*.o $(PROJECT_NAME)
-    endif
+	ifeq ($(PLATFORM_OS),WINDOWS)
+		ifeq ($(HOST_OS),WINDOWS)
+			del *.o *.exe /s
+		else ifeq ($(HOST_OS),OSX)
+			rm -fv *.o *.exe
+		else ifeq ($(HOST_OS),LINUX)
+			rm -fv *.o *.exe	
+		else
+			@echo "Unable to clean: invalid HOST_OS detected: ${HOST_OS}"
+		endif
+	endif
+	ifeq ($(PLATFORM_OS),LINUX)
+		ifeq ($(HOST_OS),WINDOWS)
+			del *.o /s
+		else ifeq ($(HOST_OS),OSX)
+			find . -type f -executable -delete
+			rm -f *.o
+		else ifeq ($(HOST_OS),LINUX)
+			find . -type f -executable -delete
+			rm -f *.o
+		else
+			@echo "Unable to clean: invalid HOST_OS detected: ${HOST_OS}"
+		endif
+	endif
+	ifeq ($(PLATFORM_OS),OSX)
+		ifeq ($(HOST_OS),WINDOWS)
+			del *.o external/*.o /s
+		else ifeq ($(HOST_OS),OSX)
+			rm -f *.o external/*.o $(PROJECT_NAME)
+		else ifeq ($(HOST_OS),LINUX)
+			rm -f *.o external/*.o $(PROJECT_NAME)
+		else
+			@echo "Unable to clean: invalid HOST_OS detected: ${HOST_OS}"
+		endif
+	endif
 endif
 ifeq ($(PLATFORM),PLATFORM_DRM)
-	find . -type f -executable -delete
-	rm -fv *.o
+	ifeq ($(HOST_OS),WINDOWS)
+		del *.o /s
+	else ifeq ($(HOST_OS),OSX)
+		find . -type f -executable -delete
+		rm -f *.o
+	else ifeq ($(HOST_OS),LINUX)
+		find . -type f -executable -delete
+		rm -f *.o
+	else
+		@echo "Unable to clean: invalid HOST_OS detected: ${HOST_OS}"
+	endif
 endif
 ifeq ($(PLATFORM),PLATFORM_WEB)
-	del *.o *.html *.js
+	ifeq ($(HOST_OS),WINDOWS)
+		del *.o *.html *.js /s
+	else ifeq ($(HOST_OS),OSX)
+		rm -fv *.o *.html *.js
+	else ifeq ($(HOST_OS),LINUX)
+		rm -fv *.o *.html *.js
+	else
+		@echo "Unable to clean: invalid HOST_OS detected: ${HOST_OS}"
+	endif
 endif
 	@echo Cleaning done
-
