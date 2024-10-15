@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="EN-us">
+<html lang="en-us">
   <head>
     <meta charset="utf-8">
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
@@ -8,7 +8,7 @@
 
     <meta name="title" content="raylib web game">
     <meta name="description" content="New raylib web videogame, developed using raylib videogames library">
-    <meta name="keywords" content="raylib, programming, examples, html5, C, C++, library, learn, games, videogames">
+    <meta name="keywords" content="raylib, games, html5, programming, C, C++, library, learn, videogames">
     <meta name="viewport" content="width=device-width">
 
     <!-- Open Graph metatags for sharing -->
@@ -33,9 +33,22 @@
     <!-- Favicon -->
     <link rel="shortcut icon" href="https://www.raylib.com/favicon.ico">
 
+    <!-- Web Style -->
     <style>
-        body { margin: 0px; }
-        canvas.emscripten { border: 0px none; background-color: black; }
+        body { 
+          margin: 0px; 
+          overflow: hidden; 
+          background-color: black;
+        }
+        canvas.emscripten { 
+          border: 0px none; 
+          background-color: black;}
+          padding-left: 0;
+          padding-right: 0;
+          margin-left: auto;
+          margin-right: auto;
+          display: block;
+        }
     </style>
     <script type='text/javascript' src="https://cdn.jsdelivr.net/gh/eligrey/FileSaver.js/dist/FileSaver.min.js"> </script>
     <script type='text/javascript'>

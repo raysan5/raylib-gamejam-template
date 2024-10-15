@@ -1,6 +1,6 @@
 #**************************************************************************************************
 #
-#   raylib makefile for Desktop platforms, Raspberry Pi and Web Assembly
+#   raylib makefile for Desktop platforms, Web (Wasm), Raspberry Pi (DRM mode) and Android
 #
 #   Copyright (c) 2013-2024 Ramon Santamaria (@raysan5)
 #
@@ -25,25 +25,35 @@
 
 # Define required environment variables
 #------------------------------------------------------------------------------------------------
-# Define target platform: PLATFORM_DESKTOP, PLATFORM_WEB, PLATFORM_DRM
+# Define target platform: PLATFORM_DESKTOP, PLATFORM_WEB, PLATFORM_DRM, PLATFORM_ANDROID
 PLATFORM              ?= PLATFORM_DESKTOP
 
 # Define project variables
 PROJECT_NAME          ?= raylib_game
 PROJECT_VERSION       ?= 1.0
 PROJECT_BUILD_PATH    ?= .
+PROJECT_SOURCE_FILES  ?= raylib_game.c
 
-RAYLIB_PATH           ?= ../../raylib
-RAYLIB_INCLUDE_PATH   ?= $(RAYLIB_PATH)/src
-RAYLIB_LIB_PATH       ?= $(RAYLIB_PATH)/src
+# raylib library variables
+RAYLIB_SRC_PATH       ?= C:/raylib/raylib/src
+RAYLIB_INCLUDE_PATH   ?= $(RAYLIB_SRC_PATH)
+RAYLIB_LIB_PATH       ?= $(RAYLIB_SRC_PATH)
+
+# Library type used for raylib: STATIC (.a) or SHARED (.so/.dll)
+RAYLIB_LIBTYPE        ?= STATIC
+
+# Define compiler path on Windows
+COMPILER_PATH         ?= C:\raylib\w64devkit\bin
 
 # Build mode for project: DEBUG or RELEASE
-BUILD_MODE            ?= DEBUG
+BUILD_MODE            ?= RELEASE
 
 # PLATFORM_WEB: Default properties
 BUILD_WEB_ASYNCIFY    ?= FALSE
 BUILD_WEB_SHELL       ?= minshell.html
 BUILD_WEB_HEAP_SIZE   ?= 128MB
+BUILD_WEB_STACK_SIZE  ?= 1MB
+BUILD_WEB_ASYNCIFY_STACK_SIZE ?= 1048576
 BUILD_WEB_RESOURCES   ?= TRUE
 BUILD_WEB_RESOURCES_PATH  ?= resources
 
@@ -53,6 +63,10 @@ ifeq ($(PLATFORM),PLATFORM_DESKTOP)
     # ifeq ($(UNAME),Msys) -> Windows
     ifeq ($(OS),Windows_NT)
         PLATFORM_OS = WINDOWS
+        export PATH := $(COMPILER_PATH):$(PATH)
+        ifndef PLATFORM_SHELL
+            PLATFORM_SHELL = cmd
+        endif
     else
         UNAMEOS = $(shell uname)
         ifeq ($(UNAMEOS),Linux)
@@ -73,6 +87,9 @@ ifeq ($(PLATFORM),PLATFORM_DESKTOP)
         ifeq ($(UNAMEOS),Darwin)
             PLATFORM_OS = OSX
         endif
+        ifndef PLATFORM_SHELL
+            PLATFORM_SHELL = sh
+        endif
     endif
 endif
 ifeq ($(PLATFORM),PLATFORM_DRM)
@@ -80,16 +97,40 @@ ifeq ($(PLATFORM),PLATFORM_DRM)
     ifeq ($(UNAMEOS),Linux)
         PLATFORM_OS = LINUX
     endif
+    ifndef PLATFORM_SHELL
+        PLATFORM_SHELL = sh
+    endif
+endif
+ifeq ($(PLATFORM),PLATFORM_WEB)
+    ifeq ($(OS),Windows_NT)
+        PLATFORM_OS = WINDOWS
+        ifndef PLATFORM_SHELL
+            PLATFORM_SHELL = cmd
+        endif
+    else
+        UNAMEOS = $(shell uname)
+        ifeq ($(UNAMEOS),Linux)
+            PLATFORM_OS = LINUX
+        endif
+        ifeq ($(UNAMEOS),Darwin)
+            PLATFORM_OS = OSX
+        endif
+        ifndef PLATFORM_SHELL
+            PLATFORM_SHELL = sh
+        endif
+    endif
 endif
 
-ifeq ($(PLATFORM),PLATFORM_WEB)
-    # Emscripten required variables
-    EMSDK_PATH         ?= C:/emsdk
-    EMSCRIPTEN_PATH    ?= $(EMSDK_PATH)/upstream/emscripten
-    CLANG_PATH          = $(EMSDK_PATH)/upstream/bin
-    PYTHON_PATH         = $(EMSDK_PATH)/python/3.9.2-1_64bit
-    NODE_PATH           = $(EMSDK_PATH)/node/14.15.5_64bit/bin
-    export PATH         = $(EMSDK_PATH);$(EMSCRIPTEN_PATH);$(CLANG_PATH);$(NODE_PATH);$(PYTHON_PATH):$$(PATH)
+ifeq ($(PLATFORM_OS),WINDOWS)
+    ifeq ($(PLATFORM),PLATFORM_WEB)
+        # Emscripten required variables
+        EMSDK_PATH         ?= C:/emsdk
+        EMSCRIPTEN_PATH    ?= $(EMSDK_PATH)/upstream/emscripten
+        CLANG_PATH          = $(EMSDK_PATH)/upstream/bin
+        PYTHON_PATH         = $(EMSDK_PATH)/python/3.9.2-1_64bit
+        NODE_PATH           = $(EMSDK_PATH)/node/14.18.2_64bit/bin
+        export PATH         = $(EMSDK_PATH);$(EMSCRIPTEN_PATH);$(CLANG_PATH);$(NODE_PATH);$(PYTHON_PATH):$$(PATH)
+    endif
 endif
 
 # Define default C compiler: CC
@@ -142,7 +183,8 @@ endif
 #  -Wno-missing-braces  ignore invalid warning (GCC bug 53119)
 #  -Wno-unused-value    ignore unused return values of some functions (i.e. fread())
 #  -D_DEFAULT_SOURCE    use with -std=c99 on Linux and PLATFORM_WEB, required for timespec
-CFLAGS = -Wall -std=c99 -D_DEFAULT_SOURCE -Wno-missing-braces -Wunused-result
+CFLAGS = -std=c99 -Wall -Wno-missing-braces -Wno-unused-value -Wno-pointer-sign -D_DEFAULT_SOURCE $(PROJECT_CUSTOM_FLAGS)
+#CFLAGS += -Wextra -Wmissing-prototypes -Wstrict-prototypes
 
 ifeq ($(BUILD_MODE),DEBUG)
     CFLAGS += -g -D_DEBUG
@@ -167,7 +209,7 @@ endif
 
 # Define include paths for required headers: INCLUDE_PATHS
 #------------------------------------------------------------------------------------------------
-INCLUDE_PATHS = -I. -I$(RAYLIB_PATH)/src -I$(RAYLIB_PATH)/src/external
+INCLUDE_PATHS += -I. -Iexternal -I$(RAYLIB_INCLUDE_PATH)
 
 # Define additional directories containing required header files
 ifeq ($(PLATFORM),PLATFORM_DRM)
@@ -187,8 +229,8 @@ LDFLAGS = -L. -L$(RAYLIB_LIB_PATH)
 
 ifeq ($(PLATFORM),PLATFORM_DESKTOP)
     ifeq ($(PLATFORM_OS),WINDOWS)
-        # resource file contains windows executable icon and properties
-        LDFLAGS += $(RAYLIB_PATH)/src/raylib.rc.data
+        # NOTE: The resource .rc file contains windows executable icon and properties
+        LDFLAGS += $(RAYLIB_SRC_PATH)/raylib.rc.data
         # -Wl,--subsystem,windows hides the console window
         ifeq ($(BUILD_MODE), RELEASE)
             LDFLAGS += -Wl,--subsystem,windows
@@ -219,18 +261,18 @@ ifeq ($(PLATFORM),PLATFORM_WEB)
     # --memory-init-file 0       # to avoid an external memory initialization code file (.mem)
     # --preload-file resources   # specify a resources folder for data compilation
     # --source-map-base          # allow debugging in browser with source map
-    LDFLAGS += -s USE_GLFW=3 -s TOTAL_MEMORY=$(BUILD_WEB_HEAP_SIZE) -s FORCE_FILESYSTEM=1
+    LDFLAGS += -s USE_GLFW=3 -s TOTAL_MEMORY=$(BUILD_WEB_HEAP_SIZE) -s STACK_SIZE=$(BUILD_WEB_STACK_SIZE) -s FORCE_FILESYSTEM=1
     
     # Build using asyncify
     ifeq ($(BUILD_WEB_ASYNCIFY),TRUE)
-        LDFLAGS += -s ASYNCIFY
+        LDFLAGS += -s ASYNCIFY -s ASYNCIFY_STACK_SIZE=$(BUILD_WEB_ASYNCIFY_STACK_SIZE)
     endif
-    
+
     # Add resources building if required
     ifeq ($(BUILD_WEB_RESOURCES),TRUE)
         LDFLAGS += --preload-file $(BUILD_WEB_RESOURCES_PATH)
     endif
-    
+
     # Add debug mode flags if required
     ifeq ($(BUILD_MODE),DEBUG)
         LDFLAGS += -s ASSERTIONS=1 --profiling
@@ -296,19 +338,25 @@ ifeq ($(PLATFORM),PLATFORM_DRM)
 endif
 
 
-# Define source code files required
-#------------------------------------------------------------------------------------------------
-PROJECT_SOURCE_FILES ?= raylib_game.c
-
 # Define all object files from source files
+#------------------------------------------------------------------------------------------------
 OBJS = $(patsubst %.c, %.o, $(PROJECT_SOURCE_FILES))
 
 # Define processes to execute
 #------------------------------------------------------------------------------------------------
+# For Android platform we call a custom Makefile.Android
+ifeq ($(PLATFORM),PLATFORM_ANDROID)
+    MAKEFILE_TARGET = -f Makefile.Android
+    export PROJECT_NAME
+    export PROJECT_SOURCE_FILES
+else
+    MAKEFILE_TARGET = $(PROJECT_NAME)
+endif
+
 # Default target entry
 # NOTE: We call this Makefile target or Makefile.Android target
 all:
-	$(MAKE) $(PROJECT_NAME)
+	$(MAKE) $(MAKEFILE_TARGET)
 
 # Project target defined by PROJECT_NAME
 $(PROJECT_NAME): $(OBJS)
@@ -319,26 +367,40 @@ $(PROJECT_NAME): $(OBJS)
 %.o: %.c
 	$(CC) -c $< -o $@ $(CFLAGS) $(INCLUDE_PATHS) -D$(PLATFORM)
 
+.PHONY: clean_shell_cmd clean_shell_sh
+
 # Clean everything
-clean:
+clean:	clean_shell_$(PLATFORM_SHELL)
+	@echo Cleaning done
+
+clean_shell_sh:
 ifeq ($(PLATFORM),PLATFORM_DESKTOP)
-    ifeq ($(PLATFORM_OS),WINDOWS)
-		del *.o *.exe /s
-    endif
     ifeq ($(PLATFORM_OS),LINUX)
 		find . -type f -executable -delete
 		rm -fv *.o
     endif
     ifeq ($(PLATFORM_OS),OSX)
-		rm -f *.o external/*.o $(PROJECT_NAME)
+		find . -type f -perm +ugo+x -delete
+		rm -f *.o
     endif
+endif
+ifeq ($(PLATFORM),PLATFORM_RPI)
+	find . -type f -executable -delete
+	rm -fv *.o
 endif
 ifeq ($(PLATFORM),PLATFORM_DRM)
 	find . -type f -executable -delete
 	rm -fv *.o
 endif
 ifeq ($(PLATFORM),PLATFORM_WEB)
-	del *.o *.html *.js
+    ifeq ($(PLATFORM_OS),LINUX)
+		rm -fv *.o $(PROJECT_NAME).data $(PROJECT_NAME).html $(PROJECT_NAME).js $(PROJECT_NAME).wasm
+    endif
+    ifeq ($(PLATFORM_OS),OSX)
+		rm -f *.o $(PROJECT_NAME).data $(PROJECT_NAME).html $(PROJECT_NAME).js $(PROJECT_NAME).wasm
+    endif
 endif
-	@echo Cleaning done
 
+clean_shell_cmd: SHELL=cmd
+clean_shell_cmd:
+	del *.o *.exe $(PROJECT_NAME).data $(PROJECT_NAME).html $(PROJECT_NAME).js $(PROJECT_NAME).wasm /s

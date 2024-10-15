@@ -8,17 +8,22 @@ on:
       - '.github/workflows/linux.yml'
   release:
     types: [published]
+    
+permissions:
+  contents: read
 
 jobs:
   build:
+    permissions:
+      contents: write       # for actions/upload-release-asset to upload release asset
     runs-on: ubuntu-20.04
     
     env:
       PROJECT_NAME: ${{ github.event.repository.name }}
       PROJECT_BUILD_PATH: ${{ github.event.repository.name }}/src
       PROJECT_RELEASE_PATH: ${{ github.event.repository.name }}_dev_linux_x64
-      PROJECT_SOURCES: "project_name.c"
       PROJECT_CUSTOM_FLAGS: ""
+      PROJECT_RESOURCES_PATH: resources
     
     steps:
     - name: Checkout this repo
@@ -55,12 +60,13 @@ jobs:
     - name: Build Product
       run: |
         cd ${{ env.PROJECT_NAME }}/src
-        make PLATFORM=PLATFORM_DESKTOP BUILD_MODE=RELEASE PROJECT_SOURCE_FILES=${{ env.PROJECT_SOURCES }} PROJECT_CUSTOM_FLAGS=${{ env.PROJECT_CUSTOM_FLAGS }} PROJECT_BUILD_PATH=. RAYLIB_PATH=../../raylib
+        make PLATFORM=PLATFORM_DESKTOP BUILD_MODE=RELEASE PROJECT_CUSTOM_FLAGS=${{ env.PROJECT_CUSTOM_FLAGS }} PROJECT_BUILD_PATH=. RAYLIB_SRC_PATH=../../raylib/src
 
     - name: Generate Artifacts
       run: |
         ls ${{ env.PROJECT_BUILD_PATH }}
         cp ${{ env.PROJECT_BUILD_PATH }}/${{ env.PROJECT_NAME }} ${{ env.PROJECT_RELEASE_PATH }}
+        cp -r ${{ env.PROJECT_NAME }}/${{ env.PROJECT_RESOURCES_PATH }} ${{ env.PROJECT_RELEASE_PATH }}
         cp ${{ env.PROJECT_NAME }}/README.md ${{ env.PROJECT_RELEASE_PATH }}
         cp ${{ env.PROJECT_NAME }}/LICENSE ${{ env.PROJECT_RELEASE_PATH }}
         ls ${{ env.PROJECT_RELEASE_PATH }}
