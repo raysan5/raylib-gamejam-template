@@ -49,8 +49,8 @@ typedef enum {
 //----------------------------------------------------------------------------------
 // Global Variables Definition
 //----------------------------------------------------------------------------------
-static const int screenWidth = 1280;
-static const int screenHeight = 720;
+static const int screenWidth = 800;
+static const int screenHeight = 450;
 
 static RenderTexture2D target = { 0 };  // Render texture to render our game
 
@@ -125,7 +125,8 @@ void UpdateDrawFrame(void)
         ClearBackground(RAYWHITE);
         
         // TODO: Draw your game screen here
-        DrawRectangle(10, 10, screenWidth - 20, screenHeight - 20, SKYBLUE);
+        DrawText("Welcome to raylib NEXT gamejam!", 150, 140, 30, BLACK);
+        DrawRectangleLinesEx((Rectangle){ 0, 0, screenWidth, screenHeight }, 16, BLACK);
         
     EndTextureMode();
     
