@@ -29,7 +29,7 @@ jobs:
     - name: Checkout this repo
       uses: actions/checkout@master
       with:
-        path: ${{ env.PROJECT_NAME }}
+        path: ${{ env.PROJECT_REPO_NAME }}
       
     - name: Checkout raylib repo
       uses: actions/checkout@v4
