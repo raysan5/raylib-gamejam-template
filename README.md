@@ -36,7 +36,7 @@ src/raylib_game
 
 This template has been created to be used with raylib (www.raylib.com) and it's licensed under an unmodified zlib/libpng license.
 
-_Copyright (c) 2022-2024 Ramon Santamaria ([@raysan5](https://twitter.com/raysan5))_
+_Copyright (c) 2022-2025 Ramon Santamaria ([@raysan5](https://twitter.com/raysan5))_
 
 -----------------------------------
 
