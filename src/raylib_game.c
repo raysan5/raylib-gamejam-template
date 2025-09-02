@@ -107,7 +107,7 @@ int main(void)
 }
 
 //--------------------------------------------------------------------------------------------
-// Module functions definition
+// Module Functions Definition
 //--------------------------------------------------------------------------------------------
 // Update and draw frame
 void UpdateDrawFrame(void)
