@@ -35,7 +35,7 @@ PROJECT_BUILD_PATH    ?= .
 PROJECT_SOURCE_FILES  ?= raylib_game.c
 
 # raylib library variables
-RAYLIB_PATH           ?= C:\raylib\raylib
+RAYLIB_PATH           ?= C:/raylib/raylib
 RAYLIB_INCLUDE_PATH   ?= $(RAYLIB_PATH)/src
 RAYLIB_LIB_PATH       ?= $(RAYLIB_PATH)/src
 

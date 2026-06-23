@@ -63,6 +63,7 @@ static const int screenWidth = 720;
 static const int screenHeight = 720;
 
 static RenderTexture2D target = { 0 };  // Render texture to render our game
+static int frameCounter = 0;
 
 // TODO: Define global variables here, recommended to make them static
 
@@ -125,6 +126,8 @@ void UpdateDrawFrame(void)
     // Update
     //----------------------------------------------------------------------------------
     // TODO: Update variables / Implement example logic at this point
+   
+    frameCounter++;
     //----------------------------------------------------------------------------------
 
     // Draw
@@ -135,7 +138,16 @@ void UpdateDrawFrame(void)
         ClearBackground(RAYWHITE);
         
         // TODO: Draw your game screen here
-        DrawText("Welcome to raylib NEXT gamejam!", 150, 140, 30, BLACK);
+
+        DrawRectangle(70, 90, 200, 200, BLACK);
+        DrawRectangle(70 + 16, 90 + 16, 200 - 32, 200 - 32, RAYWHITE);
+        DrawText("raylib", 70 + 200 - MeasureText("raylib", 40) - 32, 90 + 200 - 40 - 24, 40, BLACK);
+
+        DrawText("6.x", 290, 90 - 26, 280, BLACK);
+        DrawText("GAMEJAM", 70, 90 + 210, 120, MAROON);
+
+        if ((frameCounter/20)%2) DrawText("are you ready?", 160, 500, 50, BLACK);
+        
         DrawRectangleLinesEx((Rectangle){ 0, 0, screenWidth, screenHeight }, 16, BLACK);
         
     EndTextureMode();
