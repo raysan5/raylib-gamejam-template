@@ -2,7 +2,7 @@
 #
 #   raylib makefile for Desktop platforms, Web (Wasm), Raspberry Pi (DRM mode) and Android
 #
-#   Copyright (c) 2013-2025 Ramon Santamaria (@raysan5)
+#   Copyright (c) 2013-2026 Ramon Santamaria (@raysan5)
 #
 #   This software is provided "as-is", without any express or implied warranty. In no event
 #   will the authors be held liable for any damages arising from the use of this software.
@@ -36,8 +36,8 @@ PROJECT_SOURCE_FILES  ?= raylib_game.c
 
 # raylib library variables
 RAYLIB_PATH           ?= C:\raylib\raylib
-RAYLIB_INCLUDE_PATH   ?= $(RAYLIB_PATH)\src
-RAYLIB_LIB_PATH       ?= $(RAYLIB_PATH)\src
+RAYLIB_INCLUDE_PATH   ?= $(RAYLIB_PATH)/src
+RAYLIB_LIB_PATH       ?= $(RAYLIB_PATH)/src
 
 # Library type used for raylib: STATIC (.a) or SHARED (.so/.dll)
 RAYLIB_LIBTYPE        ?= STATIC
@@ -63,7 +63,7 @@ ifeq ($(PLATFORM),PLATFORM_DESKTOP)
     # ifeq ($(UNAME),Msys) -> Windows
     ifeq ($(OS),Windows_NT)
         PLATFORM_OS = WINDOWS
-        export PATH := $(COMPILER_PATH):$(PATH)
+        export PATH := $(COMPILER_PATH);$(PATH)
     else
         UNAMEOS = $(shell uname)
         ifeq ($(UNAMEOS),Linux)
@@ -93,16 +93,16 @@ ifeq ($(PLATFORM),PLATFORM_DRM)
     endif
 endif
 
-ifeq ($(PLATFORM_OS),WINDOWS)
-    ifeq ($(PLATFORM),PLATFORM_WEB)
-        # Emscripten required variables
-        EMSDK_PATH         ?= C:/raylib/emsdk
-        EMSCRIPTEN_PATH    ?= $(EMSDK_PATH)/upstream/emscripten
-        CLANG_PATH          = $(EMSDK_PATH)/upstream/bin
-        PYTHON_PATH         = $(EMSDK_PATH)/python/3.13.3_64bit
-        NODE_PATH           = $(EMSDK_PATH)/node/22.16.0_64bit/bin
-        export PATH         = $(EMSDK_PATH);$(EMSCRIPTEN_PATH);$(CLANG_PATH);$(NODE_PATH);$(PYTHON_PATH):$$(PATH)
-    endif
+ifeq ($(PLATFORM),PLATFORM_WEB)
+    # Emscripten required variables
+    EMSDK_PATH         ?= C:/raylib/emsdk
+    EMSCRIPTEN_PATH    ?= $(EMSDK_PATH)/upstream/emscripten
+    CLANG_PATH          = $(EMSDK_PATH)/upstream/bin
+    PYTHON_PATH         = $(EMSDK_PATH)/python/3.13.3_64bit
+    NODE_PATH           = $(EMSDK_PATH)/node/22.16.0_64bit/bin
+    # NOTE: Using := instead of = so Make expands it immediately and avoids 
+    # creating a recursively-expanded variable that references itself
+    export PATH        := $(EMSDK_PATH);$(EMSCRIPTEN_PATH);$(CLANG_PATH);$(NODE_PATH);$(PYTHON_PATH);$(PATH)
 endif
 
 # Define default C compiler: CC
@@ -155,8 +155,14 @@ endif
 #  -Wno-missing-braces  ignore invalid warning (GCC bug 53119)
 #  -Wno-unused-value    ignore unused return values of some functions (i.e. fread())
 #  -D_DEFAULT_SOURCE    use with -std=c99 on Linux and PLATFORM_WEB, required for timespec
-CFLAGS = -std=c99 -Wall -Wno-missing-braces -Wno-unused-value -Wno-pointer-sign -D_DEFAULT_SOURCE $(PROJECT_CUSTOM_FLAGS)
+CFLAGS = -Wall -D_DEFAULT_SOURCE -Wno-missing-braces -Wno-unused-value -Wno-pointer-sign $(PROJECT_CUSTOM_FLAGS)
 #CFLAGS += -Wextra -Wmissing-prototypes -Wstrict-prototypes
+
+ifeq ($(PLATFORM),PLATFORM_WEB)
+    CFLAGS += -std=gnu99
+else
+    CFLAGS += -std=c99
+endif
 
 ifeq ($(BUILD_MODE),DEBUG)
     CFLAGS += -g -D_DEBUG
@@ -265,12 +271,6 @@ ifeq ($(PLATFORM),PLATFORM_DESKTOP)
         # Libraries for Windows desktop compilation
         # NOTE: WinMM library required to set high-res timer resolution
         LDLIBS = -lraylib -lopengl32 -lgdi32 -lwinmm -lcomdlg32 -lole32
-        # Required for physac examples
-        ifeq ($(RAYLIB_LIBTYPE),SHARED)
-            LDLIBS += -lpthread
-        else
-            LDLIBS += -static -lpthread
-        endif
     endif
     ifeq ($(PLATFORM_OS),LINUX)
         # Libraries for Debian GNU/Linux desktop compiling
@@ -332,7 +332,6 @@ else
 endif
 
 # Default target entry
-# NOTE: We call this Makefile target or Makefile.Android target
 all:
 	$(MAKE) $(MAKEFILE_TARGET)
 
@@ -349,22 +348,34 @@ $(PROJECT_NAME): $(OBJS)
 clean:
 ifeq ($(PLATFORM),PLATFORM_DESKTOP)
     ifeq ($(PLATFORM_OS),WINDOWS)
-		del *.o *.exe /s
+	del *.o *.exe /s
     endif
     ifeq ($(PLATFORM_OS),LINUX)
-		find . -type f -executable -delete
-		rm -fv *.o
+	find . -type f -executable -delete
+	rm -fv *.o
     endif
     ifeq ($(PLATFORM_OS),OSX)
-		rm -f *.o external/*.o $(PROJECT_NAME)
+	rm -f *.o external/*.o $(PROJECT_NAME)
     endif
+endif
+ifeq ($(PLATFORM),PLATFORM_RPI)
+	find . -type f -executable -delete
+	rm -fv *.o
 endif
 ifeq ($(PLATFORM),PLATFORM_DRM)
 	find . -type f -executable -delete
 	rm -fv *.o
 endif
 ifeq ($(PLATFORM),PLATFORM_WEB)
+    ifeq ($(PLATFORM_OS),WINDOWS)
 	del *.o *.html *.js
+    endif
+    ifeq ($(PLATFORM_OS),LINUX)
+	rm -fv *.o $(PROJECT_NAME).data $(PROJECT_NAME).html $(PROJECT_NAME).js $(PROJECT_NAME).wasm
+    endif
+    ifeq ($(PLATFORM_OS),OSX)
+	rm -f *.o $(PROJECT_NAME).data $(PROJECT_NAME).html $(PROJECT_NAME).js $(PROJECT_NAME).wasm
+    endif
 endif
 	@echo Cleaning done
 
