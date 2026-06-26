@@ -33,18 +33,6 @@
 #endif
 
 //----------------------------------------------------------------------------------
-// Defines and Macros
-//----------------------------------------------------------------------------------
-// Simple log system to avoid printf() calls if required
-// NOTE: Avoiding those calls, also avoids const strings memory usage
-#define SUPPORT_LOG_INFO
-#if defined(SUPPORT_LOG_INFO)
-    #define LOG(...) printf(__VA_ARGS__)
-#else
-    #define LOG(...)
-#endif
-
-//----------------------------------------------------------------------------------
 // Types and Structures Definition
 //----------------------------------------------------------------------------------
 typedef enum { 
