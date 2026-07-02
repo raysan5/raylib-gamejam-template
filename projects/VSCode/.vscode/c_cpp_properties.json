@@ -4,7 +4,8 @@
             "name": "Win32",
             "includePath": [
                 "${workspaceFolder}/../../src",
-                "C:/GitHub/raylib/src"
+                "${workspaceFolder}/../../src/external",
+                "C:/raylib/raylib/src"
             ],
             "defines": [
                 "_DEBUG",
@@ -22,6 +23,7 @@
             "name": "Linux",
             "includePath": [
                 "${workspaceFolder}/../../src",
+                "${workspaceFolder}/../../src/external",
                 "${workspaceFolder}/../../../raylib/src/**"
             ],
             "defines": [
